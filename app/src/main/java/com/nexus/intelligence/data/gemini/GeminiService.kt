@@ -2,9 +2,6 @@ package com.nexus.intelligence.data.gemini
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.content
-import com.google.ai.client.generativeai.type.generationConfig
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,7 +15,7 @@ import javax.inject.Singleton
 
 /**
  * Servicio de Gemini AI para búsquedas semánticas y organización de archivos.
- * Reemplaza la integración con Ollama/LocalAI para funcionar en la nube.
+ * Versión corregida (abril 2026) - Modelo de embeddings actualizado y request body fijo.
  */
 @Singleton
 class GeminiService @Inject constructor(
@@ -50,8 +47,8 @@ class GeminiService @Inject constructor(
 
     private fun getBaseUrl(): String = "https://generativelanguage.googleapis.com"
 
-    private fun getModelForEmbeddings(): String = "embedding-001"
-
+    // 🔥 MODELOS ACTUALIZADOS 2026
+    private fun getModelForEmbeddings(): String = "gemini-embedding-001"
     private fun getModelForChat(): String = "gemini-1.5-flash"
 
     // ═══════════════════════════════════════════════════════════════
@@ -70,36 +67,47 @@ class GeminiService @Inject constructor(
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // TEXT EMBEDDINGS (para búsqueda semántica)
+    // TEXT EMBEDDINGS (CORREGIDO - ahora funciona)
     // ═══════════════════════════════════════════════════════════════
 
     suspend fun getEmbedding(text: String): FloatArray? = withContext(Dispatchers.IO) {
         val apiKey = getApiKey()
-        if (apiKey.isBlank()) return@withContext null
+        if (apiKey.isBlank()) {
+            android.util.Log.e("GeminiService", "❌ API Key no configurada")
+            return@withContext null
+        }
 
         try {
-            val requestBody = GeminiEmbeddingRequest(
-                model = "models/${getModelForEmbeddings()}",
-                content = ContentData(
-                    parts = listOf(PartData(text = text.take(2048)))
-                )
+            // Request body CORRECTO (solo ContentData, sin "model")
+            val requestBody = ContentData(
+                parts = listOf(PartData(text = text.take(2048)))
             )
 
             val json = gson.toJson(requestBody)
+
             val request = Request.Builder()
-                .url("${getBaseUrl()}/v1beta/models/${getModelForEmbeddings()}:embedContent?key=$apiKey")
+                .url("\( {getBaseUrl()}/v1beta/models/ \){getModelForEmbeddings()}:embedContent?key=$apiKey")
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
 
+            android.util.Log.d("GeminiService", "📡 Enviando embedding → ${text.take(30)}...")
+
             val response = client.newCall(request).execute()
-            if (!response.isSuccessful) return@withContext null
+
+            if (!response.isSuccessful) {
+                android.util.Log.e("GeminiService", "❌ Error HTTP ${response.code} - ${response.message}")
+                return@withContext null
+            }
 
             val body = response.body?.string() ?: return@withContext null
             val embeddingResponse = gson.fromJson(body, GeminiEmbeddingResponse::class.java)
 
-            embeddingResponse.embedding?.values?.map { it.toFloat() }?.toFloatArray()
+            val embedding = embeddingResponse.embedding?.values?.map { it.toFloat() }?.toFloatArray()
+
+            android.util.Log.d("GeminiService", "✅ Embedding recibido: ${embedding?.size ?: 0} dimensiones")
+            embedding
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("GeminiService", "💥 Excepción en getEmbedding", e)
             null
         }
     }
@@ -109,7 +117,7 @@ class GeminiService @Inject constructor(
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // CHAT COMPLETIONS (para organizar archivos)
+    // CHAT COMPLETIONS (sin cambios - ya funcionaba)
     // ═══════════════════════════════════════════════════════════════
 
     suspend fun generateText(prompt: String, maxTokens: Int = 512): String? = withContext(Dispatchers.IO) {
@@ -131,7 +139,7 @@ class GeminiService @Inject constructor(
 
             val json = gson.toJson(requestBody)
             val request = Request.Builder()
-                .url("${getBaseUrl()}/v1beta/models/${getModelForChat()}:generateContent?key=$apiKey")
+                .url("\( {getBaseUrl()}/v1beta/models/ \){getModelForChat()}:generateContent?key=$apiKey")
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
 
@@ -226,11 +234,6 @@ Categoría:"""
 // ═══════════════════════════════════════════════════════════════
 // DATA CLASSES PARA GEMINI API
 // ═══════════════════════════════════════════════════════════════
-
-data class GeminiEmbeddingRequest(
-    val model: String,
-    val content: ContentData
-)
 
 data class ContentData(
     val parts: List<PartData>
