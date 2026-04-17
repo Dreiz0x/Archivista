@@ -95,7 +95,7 @@ class FileOrganizerUseCase @Inject constructor(
         if (!geminiService.isConfigured()) {
             _progress.value = "Gemini no configurado - usando clustering basico..."
             documents.forEach { doc ->
-                result[doc.id] = doc.contentPreview.toFloatArray(Charsets.UTF_8).let { bytes ->
+                result[doc.id] = doc.contentPreview.toByteArray(Charsets.UTF_8).let { bytes ->
                     FloatArray(128) { i -> if (i < bytes.size) bytes[i].toFloat() / 255f else 0f }
                 }
             }

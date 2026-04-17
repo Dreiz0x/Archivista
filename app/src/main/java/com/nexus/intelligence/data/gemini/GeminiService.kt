@@ -79,7 +79,7 @@ class GeminiService @Inject constructor(
 
         try {
             val requestBody = GeminiEmbeddingRequest(
-                model = "models/$getModelForEmbeddings",
+                model = "models/${getModelForEmbeddings()}",
                 content = ContentData(
                     parts = listOf(PartData(text = text.take(2048)))
                 )
@@ -87,7 +87,7 @@ class GeminiService @Inject constructor(
 
             val json = gson.toJson(requestBody)
             val request = Request.Builder()
-                .url("$getBaseUrl/v1beta/models/$getModelForEmbeddings:embedContent?key=$apiKey")
+                .url("${getBaseUrl()}/v1beta/models/${getModelForEmbeddings()}:embedContent?key=$apiKey")
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
 
@@ -131,7 +131,7 @@ class GeminiService @Inject constructor(
 
             val json = gson.toJson(requestBody)
             val request = Request.Builder()
-                .url("$getBaseUrl/v1beta/models/$getModelForChat:generateContent?key=$apiKey")
+                .url("${getBaseUrl()}/v1beta/models/${getModelForChat()}:generateContent?key=$apiKey")
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
 

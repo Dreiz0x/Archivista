@@ -97,7 +97,7 @@ class IndexDocumentsUseCase @Inject constructor(
         val existingStats = repository.getIndexingStats() as? Flow
         repository.updateIndexingStats(
             IndexingStatsEntity(
-                totalDocuments = totalIndexed,
+                totalFiles = totalIndexed,
                 lastScanTimestamp = System.currentTimeMillis(),
                 lastScanDurationMs = duration,
                 isCurrentlyScanning = false

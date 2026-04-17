@@ -35,7 +35,7 @@ interface DocumentRepository {
 
     // Carpetas e Historial (Con parámetros correctos)
     fun getMonitoredFolders(): Flow<List<MonitoredFolderEntity>>
-    suspend fun addMonitoredFolder(id: String, path: String, label: String)
+    suspend fun addMonitoredFolder(path: String, label: String)
     suspend fun removeMonitoredFolder(path: String)
     suspend fun addSearchHistory(query: String, resultCount: Int)
     fun getSearchHistory(): Flow<List<SearchHistoryEntity>>

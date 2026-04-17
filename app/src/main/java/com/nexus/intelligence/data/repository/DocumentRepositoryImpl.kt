@@ -109,12 +109,12 @@ class DocumentRepositoryImpl @Inject constructor(
     override suspend fun textSearch(query: String): List<SearchResult> =
         withContext(Dispatchers.IO) {
             documentDao.searchDocuments(query).map {
-                SearchResult(
-                    document = it.toDomainModel(),
-                    score = 1.0f,
-                    snippet = it.contentPreview,
-                    source = "TEXT"
-                )
+                    SearchResult(
+                        document = it.toDomainModel(),
+                        relevanceScore = 1.0f,
+                        matchedSnippet = it.contentPreview,
+                        searchType = "TEXT"
+                    )
             }
         }
 
@@ -145,9 +145,9 @@ class DocumentRepositoryImpl @Inject constructor(
                 scoredDocs.map { (doc, score, snippet) ->
                     SearchResult(
                         document = doc,
-                        score = score,
-                        snippet = snippet,
-                        source = "GEMINI"
+                        relevanceScore = score,
+                        matchedSnippet = snippet,
+                        searchType = "SEMANTIC"
                     )
                 }
             } catch (e: Exception) {
@@ -260,5 +260,6 @@ fun DocumentEntity.toDomainModel() = DocumentInfo(
     parentDirectory = parentDirectory,
     mimeType = mimeType,
     pageCount = pageCount,
-    isFavorite = false
+    isFavorite = false,
+    hasEmbedding = false
 )

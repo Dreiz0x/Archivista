@@ -27,7 +27,7 @@ object AppModule {
     @Singleton
     fun provideNexusDatabase(@ApplicationContext context: Context): NexusDatabase {
         return Room.databaseBuilder(context, NexusDatabase::class.java, NexusDatabase.DATABASE_NAME)
-            .addMigrations(NexusDatabase.MIGRATION_1_2)
+            .fallbackToDestructiveMigration()
             .build()
     }
 

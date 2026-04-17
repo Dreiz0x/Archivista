@@ -1,6 +1,7 @@
 package com.nexus.intelligence.service.indexing
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import com.nexus.intelligence.domain.usecase.IndexDocumentsUseCase
@@ -29,5 +30,18 @@ class IndexingService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
+    }
+    
+    companion object {
+        fun startScan(context: Context, directories: List<String>) {
+            val intent = Intent(context, IndexingService::class.java).apply {
+                putStringArrayListExtra("directories", ArrayList(directories))
+            }
+            context.startService(intent)
+        }
+
+        fun stop(context: Context) {
+            context.stopService(Intent(context, IndexingService::class.java))
+        }
     }
 }
