@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 /**
  * Servicio de Gemini AI para búsquedas semánticas y organización de archivos.
- * Versión corregida y estable (abril 2026).
+ * Versión corregida, potente y estable (abril 2026).
  */
 @Singleton
 class GeminiService @Inject constructor(
@@ -43,7 +43,8 @@ class GeminiService @Inject constructor(
 
     private fun getBaseUrl(): String = "https://generativelanguage.googleapis.com"
 
-    private fun getModelForEmbeddings(): String = "gemini-embedding-001"
+    // Modelos actualizados a versiones reales y estables
+    private fun getModelForEmbeddings(): String = "text-embedding-004"
     private fun getModelForChat(): String = "gemini-1.5-flash"
 
     // ═══════════════════════════════════════════════════════════════
@@ -72,8 +73,11 @@ class GeminiService @Inject constructor(
         }
 
         try {
-            val requestBody = ContentData(
-                parts = listOf(PartData(text = text.take(2048)))
+            // Estructura de request corregida para Embeddings (debe llevar 'content')
+            val requestBody = GeminiEmbeddingRequest(
+                content = Content(
+                    parts = listOf(Part(text = text.take(2048)))
+                )
             )
 
             val json = gson.toJson(requestBody)
@@ -88,7 +92,8 @@ class GeminiService @Inject constructor(
             val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
-                android.util.Log.e("GeminiService", "❌ Error HTTP ${response.code} - ${response.message}")
+                val errorBody = response.body?.string()
+                android.util.Log.e("GeminiService", "❌ Error HTTP ${response.code}: $errorBody")
                 return@withContext null
             }
 
@@ -137,7 +142,11 @@ class GeminiService @Inject constructor(
                 .build()
 
             val response = client.newCall(request).execute()
-            if (!response.isSuccessful) return@withContext null
+            if (!response.isSuccessful) {
+                val errorBody = response.body?.string()
+                android.util.Log.e("GeminiService", "❌ Error Chat: $errorBody")
+                return@withContext null
+            }
 
             val body = response.body?.string() ?: return@withContext null
             val genResponse = gson.fromJson(body, GeminiGenerateResponse::class.java)
@@ -146,7 +155,7 @@ class GeminiService @Inject constructor(
                 ?.content?.parts?.firstOrNull()
                 ?.text?.trim()
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("GeminiService", "💥 Excepción en generateText", e)
             null
         }
     }
@@ -167,7 +176,7 @@ $fileList
 Nombre de carpeta:"""
 
         return generateText(prompt, maxTokens = 20)
-            ?.replace(Regex("""[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _-]"""), "")   // ← RAW STRING (sin escapes)
+            ?.replace(Regex("[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _-]"), "") 
             ?.trim()
             ?.take(50)
             ?.ifEmpty { null }
@@ -185,7 +194,7 @@ ${content.take(500)}
 Categoría:"""
 
         return generateText(prompt, maxTokens = 10)
-            ?.replace(Regex("""[^a-zA-ZáéíóúÁÉÍÓÚñÑ]"""), "")   // ← RAW STRING (sin escapes)
+            ?.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ]"), "")
             ?.trim()
             ?.ifEmpty { null }
     }
@@ -228,12 +237,16 @@ Categoría:"""
 // DATA CLASSES
 // ═══════════════════════════════════════════════════════════════
 
-data class ContentData(
-    val parts: List<PartData>
+data class Content(
+    val parts: List<Part>
 )
 
-data class PartData(
+data class Part(
     val text: String
+)
+
+data class GeminiEmbeddingRequest(
+    val content: Content
 )
 
 data class GeminiEmbeddingResponse(
@@ -247,14 +260,6 @@ data class EmbeddingValues(
 data class GeminiGenerateRequest(
     val contents: List<Content>,
     val generationConfig: GenerationConfig
-)
-
-data class Content(
-    val parts: List<Part>
-)
-
-data class Part(
-    val text: String
 )
 
 data class GenerationConfig(
