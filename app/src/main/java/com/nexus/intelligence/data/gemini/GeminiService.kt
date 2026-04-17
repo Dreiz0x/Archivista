@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 /**
  * Servicio de Gemini AI para búsquedas semánticas y organización de archivos.
- * Versión corregida (abril 2026) - Modelo de embeddings actualizado y request body fijo.
+ * Versión corregida (abril 2026) - Modelo de embeddings actualizado y Regex fijos.
  */
 @Singleton
 class GeminiService @Inject constructor(
@@ -67,7 +67,7 @@ class GeminiService @Inject constructor(
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // TEXT EMBEDDINGS (CORREGIDO - ahora funciona)
+    // TEXT EMBEDDINGS (CORREGIDO)
     // ═══════════════════════════════════════════════════════════════
 
     suspend fun getEmbedding(text: String): FloatArray? = withContext(Dispatchers.IO) {
@@ -78,7 +78,6 @@ class GeminiService @Inject constructor(
         }
 
         try {
-            // Request body CORRECTO (solo ContentData, sin "model")
             val requestBody = ContentData(
                 parts = listOf(PartData(text = text.take(2048)))
             )
@@ -117,7 +116,7 @@ class GeminiService @Inject constructor(
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // CHAT COMPLETIONS (sin cambios - ya funcionaba)
+    // CHAT COMPLETIONS
     // ═══════════════════════════════════════════════════════════════
 
     suspend fun generateText(prompt: String, maxTokens: Int = 512): String? = withContext(Dispatchers.IO) {
@@ -174,7 +173,7 @@ $fileList
 Nombre de carpeta:"""
 
         return generateText(prompt, maxTokens = 20)
-            ?.replace(Regex("[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _\\-]"), "")
+            ?.replace(Regex("""[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _\-]"""), "")   // ← raw string (sin problemas de escape)
             ?.trim()
             ?.take(50)
             ?.ifEmpty { null }
@@ -192,7 +191,7 @@ ${content.take(500)}
 Categoría:"""
 
         return generateText(prompt, maxTokens = 10)
-            ?.replace(Regex("[^a-zA-ZáéíóúÁÉÍÓÚñÑ]"), "")
+            ?.replace(Regex("""[^a-zA-ZáéíóúÁÉÍÓÚñÑ]"""), "")   // ← raw string
             ?.trim()
             ?.ifEmpty { null }
     }
