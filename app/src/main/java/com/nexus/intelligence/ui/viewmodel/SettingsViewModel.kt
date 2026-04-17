@@ -19,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val prefs: SharedPreferences,  // ✓ Recibe el prefs INYECTADO por Hilt
     private val manageSettingsUseCase: ManageSettingsUseCase,
     private val geminiService: GeminiService,
     private val localServer: NexusLocalServer
