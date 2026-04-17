@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 /**
  * Servicio de Gemini AI para búsquedas semánticas y organización de archivos.
- * Versión corregida (abril 2026) - Modelo de embeddings actualizado y Regex fijos.
+ * Versión corregida y estable (abril 2026).
  */
 @Singleton
 class GeminiService @Inject constructor(
@@ -41,13 +41,8 @@ class GeminiService @Inject constructor(
 
     fun isConfigured(): Boolean = getApiKey().isNotBlank()
 
-    // ═══════════════════════════════════════════════════════════════
-    // API BASE DE GEMINI
-    // ═══════════════════════════════════════════════════════════════
-
     private fun getBaseUrl(): String = "https://generativelanguage.googleapis.com"
 
-    // 🔥 MODELOS ACTUALIZADOS 2026
     private fun getModelForEmbeddings(): String = "gemini-embedding-001"
     private fun getModelForChat(): String = "gemini-1.5-flash"
 
@@ -57,7 +52,6 @@ class GeminiService @Inject constructor(
 
     suspend fun isApiAvailable(): Boolean = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext false
-
         try {
             val result = getEmbedding("test connection")
             result != null
@@ -67,7 +61,7 @@ class GeminiService @Inject constructor(
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // TEXT EMBEDDINGS (CORREGIDO)
+    // TEXT EMBEDDINGS
     // ═══════════════════════════════════════════════════════════════
 
     suspend fun getEmbedding(text: String): FloatArray? = withContext(Dispatchers.IO) {
@@ -173,7 +167,7 @@ $fileList
 Nombre de carpeta:"""
 
         return generateText(prompt, maxTokens = 20)
-            ?.replace(Regex("""[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _\-]"""), "")   // ← raw string (sin problemas de escape)
+            ?.replace(Regex("""[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _-]"""), "")   // ← RAW STRING (sin escapes)
             ?.trim()
             ?.take(50)
             ?.ifEmpty { null }
@@ -191,7 +185,7 @@ ${content.take(500)}
 Categoría:"""
 
         return generateText(prompt, maxTokens = 10)
-            ?.replace(Regex("""[^a-zA-ZáéíóúÁÉÍÓÚñÑ]"""), "")   // ← raw string
+            ?.replace(Regex("""[^a-zA-ZáéíóúÁÉÍÓÚñÑ]"""), "")   // ← RAW STRING (sin escapes)
             ?.trim()
             ?.ifEmpty { null }
     }
@@ -231,7 +225,7 @@ Categoría:"""
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DATA CLASSES PARA GEMINI API
+// DATA CLASSES
 // ═══════════════════════════════════════════════════════════════
 
 data class ContentData(
