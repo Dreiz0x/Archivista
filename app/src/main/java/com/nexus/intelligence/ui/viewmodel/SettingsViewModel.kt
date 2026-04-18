@@ -19,14 +19,11 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val prefs: SharedPreferences,  // ✓ Recibe el prefs INYECTADO por Hilt
+    private val prefs: SharedPreferences,
     private val manageSettingsUseCase: ManageSettingsUseCase,
     private val geminiService: GeminiService,
     private val localServer: NexusLocalServer
 ) : ViewModel() {
-
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("archivista_settings", Context.MODE_PRIVATE)
 
     private val _geminiApiKey = MutableStateFlow(geminiService.getApiKey())
     val geminiApiKey: StateFlow<String> = _geminiApiKey.asStateFlow()
