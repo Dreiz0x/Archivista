@@ -25,6 +25,10 @@ class SettingsViewModel @Inject constructor(
     private val localServer: NexusLocalServer
 ) : ViewModel() {
 
+    // ═══════════════════════════════════════════════════════════════
+    // ESTADOS (STATEFLOW)
+    // ═══════════════════════════════════════════════════════════════
+
     private val _geminiApiKey = MutableStateFlow(geminiService.getApiKey())
     val geminiApiKey: StateFlow<String> = _geminiApiKey.asStateFlow()
 
@@ -68,6 +72,8 @@ class SettingsViewModel @Inject constructor(
     fun updateGeminiApiKey(apiKey: String) {
         _geminiApiKey.value = apiKey
         geminiService.setApiKey(apiKey)
+        // 🔥 Crucial: Re-probamos la conexión en cuanto el usuario actualiza la key
+        testApiConnection()
     }
 
     fun testApiConnection() {
@@ -75,6 +81,10 @@ class SettingsViewModel @Inject constructor(
             _apiStatus.value = geminiService.isApiAvailable()
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // GESTIÓN DE CARPETAS
+    // ═══════════════════════════════════════════════════════════════
 
     fun updateNewFolderPath(path: String) {
         _newFolderPath.value = path
@@ -100,6 +110,10 @@ class SettingsViewModel @Inject constructor(
     fun removeMonitoredFolder(path: String) {
         viewModelScope.launch { manageSettingsUseCase.removeMonitoredFolder(path) }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // PREFERENCIAS Y SERVIDOR
+    // ═══════════════════════════════════════════════════════════════
 
     fun toggleServer(enabled: Boolean) {
         _serverEnabled.value = enabled
