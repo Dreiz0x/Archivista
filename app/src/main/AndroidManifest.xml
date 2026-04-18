@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisos Criticos para ARCHIVISTA -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
@@ -20,10 +19,8 @@
         android:roundIcon="@android:drawable/sym_def_app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Archivista"
-        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="31">
 
-        <!-- Actividad Principal (Dashboard HUD) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,7 +31,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Proveedor de Archivos para abrir documentos con otras apps -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -45,7 +41,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Servicio de Indexacion en Segundo Plano -->
         <service
             android:name=".service.indexing.IndexingService"
             android:enabled="true"
