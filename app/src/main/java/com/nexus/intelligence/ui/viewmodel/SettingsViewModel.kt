@@ -78,7 +78,22 @@ class SettingsViewModel @Inject constructor(
 
     fun testApiConnection() {
         viewModelScope.launch {
-            _apiStatus.value = geminiService.isApiAvailable()
+            val keyActual = _geminiApiKey.value
+            if (keyActual.isBlank()) {
+                _snackbarMessage.value = "⚠️ La API Key está vacía en el ViewModel."
+                _apiStatus.value = false
+                return@launch
+            }
+
+            _snackbarMessage.value = "⏳ Probando conexión a Gemini..."
+            val success = geminiService.isApiAvailable()
+            _apiStatus.value = success
+            
+            if (success) {
+                _snackbarMessage.value = "✅ ¡Conexión exitosa, bato!"
+            } else {
+                _snackbarMessage.value = "❌ Falló la conexión. ¿Llave incorrecta o sin internet?"
+            }
         }
     }
 
@@ -153,3 +168,4 @@ class SettingsViewModel @Inject constructor(
 
     fun clearSnackbar() { _snackbarMessage.value = null }
 }
+
