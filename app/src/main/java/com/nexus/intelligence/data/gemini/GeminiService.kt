@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 /**
  * Servicio de Gemini AI para búsquedas semánticas y organización de archivos.
- * Versión corregida, potente y estable (abril 2026).
+ * Versión apuntando al nuevo modelo multimodal de 2026.
  */
 @Singleton
 class GeminiService @Inject constructor(
@@ -43,8 +43,8 @@ class GeminiService @Inject constructor(
 
     private fun getBaseUrl(): String = "https://generativelanguage.googleapis.com"
 
-    // Modelos actualizados a versiones reales y estables
-    private fun getModelForEmbeddings(): String = "text-embedding-004"
+    // 🔥 AQUÍ ESTÁ LA MAGIA: El modelo más nuevo y potente
+    private fun getModelForEmbeddings(): String = "gemini-embedding-2-preview"
     private fun getModelForChat(): String = "gemini-1.5-flash"
 
     // ═══════════════════════════════════════════════════════════════
@@ -54,6 +54,7 @@ class GeminiService @Inject constructor(
     suspend fun isApiAvailable(): Boolean = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext false
         try {
+            // Mandamos un texto simple para que el endpoint devuelva un 200 OK
             val result = getEmbedding("test connection")
             result != null
         } catch (e: Exception) {
@@ -73,7 +74,7 @@ class GeminiService @Inject constructor(
         }
 
         try {
-            // Estructura de request corregida para Embeddings (debe llevar 'content')
+            // Estructura de request obligatoria para v1beta (usa 'content')
             val requestBody = GeminiEmbeddingRequest(
                 content = Content(
                     parts = listOf(Part(text = text.take(2048)))
@@ -87,7 +88,7 @@ class GeminiService @Inject constructor(
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
 
-            android.util.Log.d("GeminiService", "📡 Enviando embedding → ${text.take(30)}...")
+            android.util.Log.d("GeminiService", "📡 Enviando embedding al modelo 2-preview → ${text.take(30)}...")
 
             val response = client.newCall(request).execute()
 
@@ -102,7 +103,7 @@ class GeminiService @Inject constructor(
 
             val embedding = embeddingResponse.embedding?.values?.map { it.toFloat() }?.toFloatArray()
 
-            android.util.Log.d("GeminiService", "✅ Embedding recibido: ${embedding?.size ?: 0} dimensiones")
+            android.util.Log.d("GeminiService", "✅ Embedding recibido exitosamente: ${embedding?.size ?: 0} dimensiones")
             embedding
         } catch (e: Exception) {
             android.util.Log.e("GeminiService", "💥 Excepción en getEmbedding", e)
